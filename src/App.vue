@@ -1,19 +1,19 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <img alt="Vue logo" src="./assets/logo.png" class="logo" />
+    <ApolloExample />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import ApolloExample from './components/ApolloExample.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
-}
+    ApolloExample,
+  },
+};
 </script>
 
 <style>
@@ -24,5 +24,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+.logo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 150px;
 }
 </style>
