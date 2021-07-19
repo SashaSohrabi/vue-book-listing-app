@@ -32,10 +32,11 @@
           </textarea>
         </div>
         <button
+          v-show="modifying"
           type="button"
           class="btn btn-info 
               btn-lg btn-block"
-          @click.prevent="modifyBook"
+          @click="updateBook"
         >
           Save
         </button>
@@ -60,12 +61,27 @@
                   <hr />
                   Author: {{ book.author }}, Descroption: {{ book.description }}
                 </div>
-                <button
-                  class="btn btn-danger mt-3"
-                  @click="removeBook(book.id)"
-                >
-                  Delete
-                </button>
+                <div class="wrapper">
+                  <button
+                    class="btn btn-danger mt-3"
+                    @click="removeBook(book.id)"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    class="btn btn-warning mt-3"
+                    @click="
+                      modifyBook(
+                        book.id,
+                        book.title,
+                        book.author,
+                        book.description
+                      )
+                    "
+                  >
+                    Modify
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -87,6 +103,8 @@ export default {
       title: '',
       author: '',
       description: '',
+      modifying: false,
+      modifyingBookId: '',
     };
   },
   apollo: {
@@ -174,15 +192,70 @@ export default {
             } = response;
 
             const modifiedBooks = this.books.filter(book => book.id !== id);
-            this.books = [...modifiedBooks];
+            this.books = modifiedBooks;
           });
       }
     },
-    modifyBook() {
-      console.log('hello');
+    modifyBook(id, title, author, description) {
+      this.modifying = true;
+      // const [modifyingBook] = this.books.filter(book => book.id === id);
+      this.modifyingBookId = id;
+      this.title = title;
+      this.author = author;
+      this.description = description;
+    },
+    updateBook() {
+      this.$apollo
+        .mutate({
+          mutation: gql`
+            mutation updateBook(
+              $id: ID!
+              $title: String!
+              $author: String!
+              $description: String!
+            ) {
+              updateBook(
+                id: $id
+                title: $title
+                author: $author
+                description: $description
+              ) {
+                id
+                title
+                author
+                description
+              }
+            }
+          `,
+          variables: {
+            id: this.modifyingBookId,
+            title: this.title,
+            author: this.author,
+            description: this.description,
+          },
+        })
+        .then(response => {
+          console.log(response.data);
+          this.modifying = false;
+          this.title = '';
+          this.author = '';
+          this.description = '';
+          this.modifyingBookId = '';
+        });
     },
   },
 };
 </script>
 
-<style></style>
+<style>
+h1 {
+  font-size: 30px;
+}
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+.wrapper button {
+  width: 49.5%;
+}
+</style>
