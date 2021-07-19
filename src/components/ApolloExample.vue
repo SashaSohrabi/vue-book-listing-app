@@ -167,38 +167,31 @@ export default {
       }
     },
     removeBook(id) {
-      if (confirm('Are you sure?')) {
-        this.$apollo
-          .mutate({
-            mutation: gql`
-              mutation removeBookById($id: ID!) {
-                removeBookById(id: $id) {
-                  id
-                  title
-                  author
-                  description
-                }
+      this.$apollo
+        .mutate({
+          mutation: gql`
+            mutation removeBookById($id: ID!) {
+              removeBookById(id: $id) {
+                id
+                title
+                author
+                description
               }
-            `,
-            variables: {
-              id: id,
-            },
-          })
-          .then(response => {
-            const {
-              data: {
-                removeBookById: { id },
-              },
-            } = response;
-
-            const modifiedBooks = this.books.filter(book => book.id !== id);
-            this.books = modifiedBooks;
-          });
-      }
+            }
+          `,
+          variables: {
+            id: id,
+          },
+        })
+        .then(response => {
+          const {
+            data: { removeBookById },
+          } = response;
+          this.books = [...removeBookById];
+        });
     },
     modifyBook(id, title, author, description) {
       this.modifying = true;
-      // const [modifyingBook] = this.books.filter(book => book.id === id);
       this.modifyingBookId = id;
       this.title = title;
       this.author = author;
@@ -235,7 +228,11 @@ export default {
           },
         })
         .then(response => {
-          console.log(response.data);
+          const {
+            data: { updateBook },
+          } = response;
+
+          this.books = [...updateBook];
           this.modifying = false;
           this.title = '';
           this.author = '';
