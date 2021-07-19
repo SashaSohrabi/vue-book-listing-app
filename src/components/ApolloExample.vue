@@ -33,6 +33,14 @@
         </div>
         <button
           type="button"
+          class="btn btn-info 
+              btn-lg btn-block"
+          @click.prevent="modifyBook"
+        >
+          Save
+        </button>
+        <button
+          type="button"
           class="btn btn-secondary 
               btn-lg btn-block"
           @click.prevent="createBook"
@@ -54,7 +62,7 @@
                 </div>
                 <button
                   class="btn btn-danger mt-3"
-                  @click="removeBook(book.title)"
+                  @click="removeBook(book.id)"
                 >
                   Delete
                 </button>
@@ -70,6 +78,8 @@
 
 <script>
 import gql from 'graphql-tag';
+import { v4 as uuidv4 } from 'uuid';
+
 export default {
   data() {
     return {
@@ -84,6 +94,7 @@ export default {
       query: gql`
         query {
           books {
+            id
             title
             author
             description
@@ -95,21 +106,25 @@ export default {
 
   methods: {
     createBook() {
-      console.log(this.title, this.author, this.description);
+      const id = uuidv4(); // Create uniq id
+
       if (this.title != '' && this.author != '' && this.description != '') {
         this.$apollo
           .mutate({
             mutation: gql`
               mutation createBook(
+                $id: ID!
                 $title: String!
                 $author: String!
                 $description: String!
               ) {
                 createBook(
+                  id: $id
                   title: $title
                   author: $author
                   description: $description
                 ) {
+                  id
                   title
                   author
                   description
@@ -117,6 +132,7 @@ export default {
               }
             `,
             variables: {
+              id: id,
               title: this.title,
               author: this.author,
               description: this.description,
@@ -132,13 +148,14 @@ export default {
         alert('Please fill all the fields');
       }
     },
-    removeBook(title) {
+    removeBook(id) {
       if (confirm('Are you sure?')) {
         this.$apollo
           .mutate({
             mutation: gql`
-              mutation removeBookByTitle($title: String!) {
-                removeBookByTitle(title: $title) {
+              mutation removeBookById($id: ID!) {
+                removeBookById(id: $id) {
+                  id
                   title
                   author
                   description
@@ -146,22 +163,23 @@ export default {
               }
             `,
             variables: {
-              title: title,
+              id: id,
             },
           })
           .then(response => {
             const {
               data: {
-                removeBookByTitle: { title },
+                removeBookById: { id },
               },
             } = response;
 
-            const modifiedBooks = this.books.filter(
-              book => book.title !== title
-            );
+            const modifiedBooks = this.books.filter(book => book.id !== id);
             this.books = [...modifiedBooks];
           });
       }
+    },
+    modifyBook() {
+      console.log('hello');
     },
   },
 };
