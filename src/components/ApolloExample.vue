@@ -45,7 +45,7 @@
       <div class="container mt-4">
         <div v-for="book in books" :key="book.id">
           <div class="col-md-12">
-            <div class="">
+            <div>
               <div class="card">
                 <div class="card-body">
                   Title: {{ book.title }}
@@ -67,7 +67,7 @@ import gql from 'graphql-tag';
 export default {
   data() {
     return {
-      books: '',
+      books: [],
       title: '',
       author: '',
       description: '',
@@ -89,7 +89,7 @@ export default {
 
   methods: {
     createBook() {
-      console.log(this.title, this.authour, this.description);
+      console.log(this.title, this.author, this.description);
       if (this.title != '' && this.author != '' && this.description != '') {
         this.$apollo
           .mutate({
@@ -117,9 +117,10 @@ export default {
             },
           })
           .then(response => {
-            this.books = response.data.createBook;
-            console.log(this.books);
-            // location.reload();
+            this.books.push(response.data.createBook);
+            this.title = '';
+            this.author = '';
+            this.description = '';
           });
       } else {
         alert('Please fill all the fields');
