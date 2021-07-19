@@ -52,6 +52,12 @@
                   <hr />
                   Author: {{ book.author }}, Descroption: {{ book.description }}
                 </div>
+                <button
+                  class="btn btn-danger mt-3"
+                  @click="removeBook(book.title)"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
@@ -124,6 +130,37 @@ export default {
           });
       } else {
         alert('Please fill all the fields');
+      }
+    },
+    removeBook(title) {
+      if (confirm('Are you sure?')) {
+        this.$apollo
+          .mutate({
+            mutation: gql`
+              mutation removeBookByTitle($title: String!) {
+                removeBookByTitle(title: $title) {
+                  title
+                  author
+                  description
+                }
+              }
+            `,
+            variables: {
+              title: title,
+            },
+          })
+          .then(response => {
+            const {
+              data: {
+                removeBookByTitle: { title },
+              },
+            } = response;
+
+            const modifiedBooks = this.books.filter(
+              book => book.title !== title
+            );
+            this.books = [...modifiedBooks];
+          });
       }
     },
   },
