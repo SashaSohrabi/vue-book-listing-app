@@ -59,7 +59,7 @@
                 <div class="card-body">
                   Title: {{ book.title }}
                   <hr />
-                  Author: {{ book.author }}, Descroption: {{ book.description }}
+                  Author: {{ book.author }}, Description: {{ book.description }}
                 </div>
                 <div class="wrapper">
                   <button
