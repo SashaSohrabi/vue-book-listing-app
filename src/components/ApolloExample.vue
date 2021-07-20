@@ -161,7 +161,8 @@ export default {
             this.title = '';
             this.author = '';
             this.description = '';
-          });
+          })
+          .catch(error => console.log(error));
       } else {
         alert('Please fill all the fields');
       }
@@ -188,7 +189,8 @@ export default {
             data: { removeBookById },
           } = response;
           this.books = [...removeBookById];
-        });
+        })
+        .catch(error => console.log(error));
     },
     modifyBook(id, title, author, description) {
       this.modifying = true;
@@ -238,7 +240,8 @@ export default {
           this.author = '';
           this.description = '';
           this.modifyingBookId = '';
-        });
+        })
+        .catch(error => console.log(error));
     },
   },
 };
