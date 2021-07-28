@@ -1,102 +1,27 @@
 <template>
-  <div class="container">
-    <div class="col-md-12">
-      <h1>Book listing APP With Vue.js Apollo and GraphQL</h1>
-      <form>
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            id="exampleFormControlInput1"
-            placeholder="Title"
-            v-model="title"
-          />
-        </div>
-        <div class="form-group">
-          <input
-            type="text"
-            class="form-control"
-            id="exampleFormControlInput1"
-            placeholder="Author"
-            v-model="author"
-          />
-        </div>
-        <div class="form-group">
-          <textarea
-            class="form-control"
-            id="exampleFormControlTextarea1"
-            rows="3"
-            placeholder="Descrioption"
-            v-model="description"
-          >
-          </textarea>
-        </div>
-        <button
-          v-show="modifying"
-          type="button"
-          class="btn btn-info 
-              btn-lg btn-block"
-          @click="updateBook"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary 
-              btn-lg btn-block"
-          @click.prevent="createBook"
-        >
-          Create book
-        </button>
-      </form>
-    </div>
-    <div class="row">
-      <div class="container mt-4">
-        <div v-for="book in books" :key="book.id">
-          <div class="col-md-12">
-            <div>
-              <div class="card">
-                <div class="card-body">
-                  Title: {{ book.title }}
-                  <hr />
-                  Author: {{ book.author }}, Description: {{ book.description }}
-                </div>
-                <div class="wrapper">
-                  <button
-                    class="btn btn-danger mt-3"
-                    @click="removeBook(book.id)"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    class="btn btn-warning mt-3"
-                    @click="
-                      modifyBook(
-                        book.id,
-                        book.title,
-                        book.author,
-                        book.description
-                      )
-                    "
-                  >
-                    Modify
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <br />
-        </div>
-      </div>
-    </div>
-  </div>
+  <Container>
+    <Form
+      :title="title"
+      :author="author"
+      :description="description"
+      :modifying="modifying"
+      @create-book="createBook"
+      @update-book="updateBook"
+    />
+    <div v-if="$apollo.loading">Loading...</div>
+    <BooksList v-else :books="books" />
+  </Container>
 </template>
 
 <script>
 import gql from 'graphql-tag';
 import { v4 as uuidv4 } from 'uuid';
+import BooksList from './BooksList.vue';
+import Form from './Form.vue';
+import Container from './UI/Container.vue';
 
 export default {
+  components: { BooksList, Form, Container },
   data() {
     return {
       books: [],
@@ -121,12 +46,17 @@ export default {
       `,
     },
   },
-
+  provide() {
+    return {
+      removeBook: this.removeBook,
+      modifyBook: this.modifyBook,
+    };
+  },
   methods: {
-    createBook() {
+    createBook(title, author, description) {
       const id = uuidv4(); // Create uniq id
 
-      if (this.title != '' && this.author != '' && this.description != '') {
+      if (title != '' && author != '' && description != '') {
         this.$apollo
           .mutate({
             mutation: gql`
@@ -151,16 +81,14 @@ export default {
             `,
             variables: {
               id: id,
-              title: this.title,
-              author: this.author,
-              description: this.description,
+              title: title,
+              author: author,
+              description: description,
             },
           })
           .then(response => {
             this.books.push(response.data.createBook);
-            this.title = '';
-            this.author = '';
-            this.description = '';
+            this.clearInputs();
           })
           .catch(error => console.log(error));
       } else {
@@ -189,6 +117,7 @@ export default {
             data: { removeBookById },
           } = response;
           this.books = [...removeBookById];
+          this.clearInputs();
         })
         .catch(error => console.log(error));
     },
@@ -199,7 +128,7 @@ export default {
       this.author = author;
       this.description = description;
     },
-    updateBook() {
+    updateBook(title, author, description) {
       this.$apollo
         .mutate({
           mutation: gql`
@@ -224,9 +153,9 @@ export default {
           `,
           variables: {
             id: this.modifyingBookId,
-            title: this.title,
-            author: this.author,
-            description: this.description,
+            title: title,
+            author: author,
+            description: description,
           },
         })
         .then(response => {
@@ -236,21 +165,21 @@ export default {
 
           this.books = [...updateBook];
           this.modifying = false;
-          this.title = '';
-          this.author = '';
-          this.description = '';
-          this.modifyingBookId = '';
+          this.clearInputs();
         })
         .catch(error => console.log(error));
+    },
+    clearInputs() {
+      this.title = '';
+      this.author = '';
+      this.description = '';
+      this.modifyingBookId = '';
     },
   },
 };
 </script>
 
 <style>
-h1 {
-  font-size: 30px;
-}
 .wrapper {
   display: flex;
   justify-content: space-between;
